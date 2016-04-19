@@ -235,7 +235,7 @@ void PclUtils::fit_points_to_plane(pcl::PointCloud<pcl::PointXYZ>::Ptr input_clo
 }
 
 //compute and return the centroid of a pointCloud
-Eigen::Vector3f  PclUtils::compute_centroid(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud_ptr) {
+Eigen::Vector3f  PclUtils::compute_centroid(pcl::PointCloud<PointXYZ>::Ptr input_cloud_ptr) {
     Eigen::Vector3f centroid;
     Eigen::Vector3f cloud_pt;   
     int npts = input_cloud_ptr->points.size();    
@@ -251,7 +251,7 @@ Eigen::Vector3f  PclUtils::compute_centroid(pcl::PointCloud<pcl::PointXYZ>::Ptr 
 }
 
 //same thing, but arg is reference cloud instead of pointer:
-Eigen::Vector3f  PclUtils::compute_centroid(pcl::PointCloud<pcl::PointXYZ> &input_cloud) {
+Eigen::Vector3f  PclUtils::compute_centroid(pcl::PointCloud<PointXYZ> &input_cloud) {
     Eigen::Vector3f centroid;
     Eigen::Vector3f cloud_pt;   
     int npts = input_cloud.points.size();    
@@ -266,6 +266,37 @@ Eigen::Vector3f  PclUtils::compute_centroid(pcl::PointCloud<pcl::PointXYZ> &inpu
     return centroid;
 }
 
+//compute and return the centroid of a pointCloud
+Eigen::Vector3f  PclUtils::compute_centroid(pcl::PointCloud<PointXYZRGB>::Ptr input_cloud_ptr) {
+    Eigen::Vector3f centroid;
+    Eigen::Vector3f cloud_pt;
+    int npts = input_cloud_ptr->points.size();
+    centroid<<0,0,0;
+    //add all the points together:
+
+    for (int ipt = 0; ipt < npts; ipt++) {
+        cloud_pt = input_cloud_ptr->points[ipt].getVector3fMap();
+        centroid += cloud_pt; //add all the column vectors together
+    }
+    centroid/= npts; //divide by the number of points to get the centroid
+    return centroid;
+}
+
+//same thing, but arg is reference cloud instead of pointer:
+Eigen::Vector3f  PclUtils::compute_centroid(pcl::PointCloud<PointXYZRGB> &input_cloud) {
+    Eigen::Vector3f centroid;
+    Eigen::Vector3f cloud_pt;
+    int npts = input_cloud.points.size();
+    centroid<<0,0,0;
+    //add all the points together:
+
+    for (int ipt = 0; ipt < npts; ipt++) {
+        cloud_pt = input_cloud.points[ipt].getVector3fMap();
+        centroid += cloud_pt; //add all the column vectors together
+    }
+    centroid/= npts; //divide by the number of points to get the centroid
+    return centroid;
+}
 // this fnc operates on transformed selected points
 
 /*
@@ -328,6 +359,10 @@ void PclUtils::transform_kinect_cloud(Eigen::Affine3f A) {
      * */
 }
 
+void PclUtils::transform_kinect_clr_cloud(Eigen::Affine3f A) {
+    transform_cloud(A, pclKinect_clr_ptr_, pclTransformed_clr_ptr_);
+}
+
 void PclUtils::transform_selected_points_cloud(Eigen::Affine3f A) {
     transform_cloud(A, pclSelectedPoints_ptr_, pclTransformedSelectedPoints_ptr_);
 }
@@ -376,6 +411,20 @@ void PclUtils::get_kinect_points(pcl::PointCloud<pcl::PointXYZ> & outputCloud ) 
     }
 }
 
+void PclUtils::get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZ> & outputCloud ) {
+    int npts = pclTransformed_ptr_->points.size(); //how many points to extract?
+    outputCloud.header = pclTransformed_ptr_->header;
+    outputCloud.is_dense = pclTransformed_ptr_->is_dense;
+    outputCloud.width = npts;
+    outputCloud.height = 1;
+
+    cout << "copying cloud w/ npts =" << npts << endl;
+    outputCloud.points.resize(npts);
+    for (int i = 0; i < npts; ++i) {
+        outputCloud.points[i].getVector3fMap() = pclTransformed_ptr_->points[i].getVector3fMap();
+    }
+}
+
 void PclUtils::get_kinect_points(pcl::PointCloud<pcl::PointXYZRGB> & outputCloud ) {
     int npts = pclKinect_clr_ptr_->points.size(); //how many points to extract?
     outputCloud.header = pclKinect_clr_ptr_->header;
@@ -391,6 +440,20 @@ void PclUtils::get_kinect_points(pcl::PointCloud<pcl::PointXYZRGB> & outputCloud
     
 }
 
+void PclUtils::get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZRGB> & outputCloud ) {
+    int npts = pclTransformed_clr_ptr_->points.size(); //how many points to extract?
+    outputCloud.header = pclTransformed_clr_ptr_->header;
+    outputCloud.is_dense = pclTransformed_clr_ptr_->is_dense;
+    outputCloud.width = npts;
+    outputCloud.height = 1;
+
+    cout << "get_kinect_points xyzrgb, copying cloud w/ npts =" << npts << endl;
+    outputCloud.points.resize(npts);
+    for (int i = 0; i < npts; ++i) {
+        outputCloud.points[i] = pclTransformed_clr_ptr_->points[i];
+    }
+
+}
 //need this version for viewer
 void PclUtils::get_kinect_points(pcl::PointCloud<pcl::PointXYZRGB>::Ptr &outputCloudPtr ) {
     int npts = pclKinect_clr_ptr_->points.size(); //how many points to extract?
@@ -415,11 +478,34 @@ void PclUtils::get_kinect_points(pcl::PointCloud<pcl::PointXYZRGB>::Ptr &outputC
         outputCloudPtr->points[i].r = pclKinect_clr_ptr_->points[i].r;
         outputCloudPtr->points[i].g = pclKinect_clr_ptr_->points[i].g;
         outputCloudPtr->points[i].b = pclKinect_clr_ptr_->points[i].b;
-
     }        
 }
 
+void PclUtils::get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZRGB>::Ptr &outputCloudPtr ) {
+    int npts = pclTransformed_clr_ptr_->points.size(); //how many points to extract?
+    //cout<<"need to copy "<<npts<<" points"<<endl;
+    //cout<<"enter 1: ";
+    //int ans;
+    //cin>>ans;
+    outputCloudPtr->header = pclTransformed_clr_ptr_->header;
+    outputCloudPtr->is_dense = pclTransformed_clr_ptr_->is_dense;
+    cout<<"setting width: "<<endl;
+    outputCloudPtr->width = npts;
+    cout<<"setting height"<<endl;
+    outputCloudPtr->height = 1;
 
+    //cout << "ready to resize output cloud to npts = " << npts << endl;
+    //    cout<<"enter 1: ";
+    // cin>>ans;
+    outputCloudPtr->points.resize(npts);
+    for (int i = 0; i < npts; ++i) {
+        outputCloudPtr->points[i].getVector3fMap() = pclTransformed_clr_ptr_->points[i].getVector3fMap();
+
+        outputCloudPtr->points[i].r = pclTransformed_clr_ptr_->points[i].r;
+        outputCloudPtr->points[i].g = pclTransformed_clr_ptr_->points[i].g;
+        outputCloudPtr->points[i].b = pclTransformed_clr_ptr_->points[i].b;
+    }
+}
 
 void PclUtils::get_kinect_points(pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloudPtr ) {
     int npts = pclKinect_ptr_->points.size(); //how many points to extract?
@@ -435,6 +521,19 @@ void PclUtils::get_kinect_points(pcl::PointCloud<pcl::PointXYZ>::Ptr &outputClou
     }
 }
 
+void PclUtils::get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloudPtr ) {
+    int npts = pclTransformed_ptr_->points.size(); //how many points to extract?
+    outputCloudPtr->header = pclTransformed_ptr_->header;
+    outputCloudPtr->is_dense = pclTransformed_ptr_->is_dense;
+    outputCloudPtr->width = npts;
+    outputCloudPtr->height = 1;
+
+    cout << "copying cloud w/ npts =" << npts << endl;
+    outputCloudPtr->points.resize(npts);
+    for (int i = 0; i < npts; ++i) {
+        outputCloudPtr->points[i].getVector3fMap() = pclTransformed_ptr_->points[i].getVector3fMap();
+    }
+}
 
 //same as above, but for general-purpose cloud
 void PclUtils::get_gen_purpose_cloud(pcl::PointCloud<pcl::PointXYZ> & outputCloud ) {
@@ -613,6 +712,10 @@ void PclUtils::find_coplanar_pts_z_height(double plane_height,double z_eps,vecto
     filter_cloud_z(pclTransformed_ptr_,plane_height,z_eps,indices);
 }
 
+void PclUtils::filter_cloud_z(double z_max, double z_min, double z_eps,vector<int> &indices) {
+    filter_cloud_z(pclTransformed_ptr_, z_max, z_min, z_eps, indices);
+}
+
 void PclUtils::filter_cloud_z(PointCloud<pcl::PointXYZ>::Ptr inputCloud, double z_nom, double z_eps, vector<int> &indices) {
     int npts = inputCloud->points.size();
     Eigen::Vector3f pt;
@@ -633,6 +736,28 @@ void PclUtils::filter_cloud_z(PointCloud<pcl::PointXYZ>::Ptr inputCloud, double 
     cout << " number of points in range = " << n_extracted << endl;
 }
 
+void PclUtils::filter_cloud_z(PointCloud<pcl::PointXYZ>::Ptr inputCloud, double z_min, double z_max, double z_eps, vector<int> &indices) {
+    int npts = inputCloud->points.size();
+    double z;
+    indices.clear();
+    int ans;
+    double max = z_max + z_eps;
+    double min = z_min - z_eps;
+
+    for (int i = 0; i < npts; ++i) {
+        z = inputCloud->points[i].z;
+        //cout<<"pt: "<<pt.transpose()<<endl;
+
+        if (z < max && z > min) {
+            indices.push_back(i);
+            //cout<<"dz = "<<dz<<"; saving this point...enter 1 to continue: ";
+            //cin>>ans;
+        }
+    }
+    int n_extracted = indices.size();
+    cout << " number of points in range = " << n_extracted << endl;
+}
+
 void PclUtils::filter_cloud_z(PointCloud<pcl::PointXYZRGB>::Ptr inputCloud, double z_nom, double z_eps, vector<int> &indices) {
     int npts = inputCloud->points.size();
     Eigen::Vector3f pt;
@@ -644,6 +769,28 @@ void PclUtils::filter_cloud_z(PointCloud<pcl::PointXYZRGB>::Ptr inputCloud, doub
         //cout<<"pt: "<<pt.transpose()<<endl;
         dz = pt[2] - z_nom;
         if (fabs(dz) < z_eps) {
+            indices.push_back(i);
+            //cout<<"dz = "<<dz<<"; saving this point...enter 1 to continue: ";
+            //cin>>ans;
+        }
+    }
+    int n_extracted = indices.size();
+    cout << " number of points in range = " << n_extracted << endl;
+}
+
+void PclUtils::filter_cloud_z(PointCloud<pcl::PointXYZRGB>::Ptr inputCloud, double z_min, double z_max, double z_eps, vector<int> &indices) {
+    int npts = inputCloud->points.size();
+    double z;
+    indices.clear();
+    int ans;
+    double max = z_max + z_eps;
+    double min = z_min - z_eps;
+
+    for (int i = 0; i < npts; ++i) {
+        z = inputCloud->points[i].z;
+        //cout<<"pt: "<<pt.transpose()<<endl;
+
+        if (z < max && z > min) {
             indices.push_back(i);
             //cout<<"dz = "<<dz<<"; saving this point...enter 1 to continue: ";
             //cin>>ans;
@@ -817,7 +964,7 @@ void PclUtils::initializeSubscribers() {
     // add more subscribers here, as needed
 
     // subscribe to "selected_points", which is published by Rviz tool
-    selected_points_subscriber_ = nh_.subscribe<sensor_msgs::PointCloud2> ("/selected_points", 1, &PclUtils::selectCB, this);
+    selected_points_subscriber_ = nh_.subscribe<sensor_msgs::PointCloud2> ("/rviz_selected_points", 1, &PclUtils::selectCB, this);
 }
 
 //member helper function to set up publishers;

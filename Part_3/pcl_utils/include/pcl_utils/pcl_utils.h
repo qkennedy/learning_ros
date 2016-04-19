@@ -32,7 +32,7 @@
 #include <pcl/point_types.h>
 #include <pcl/point_cloud.h>
 #include <pcl_ros/point_cloud.h>
-#include <pcl/ros/conversions.h>
+#include <pcl/conversions.h>
 #include <pcl/features/normal_3d.h>
 #include <pcl/filters/extract_indices.h>
 #include <pcl_ros/transforms.h>
@@ -63,6 +63,8 @@ public:
         double &plane_dist); 
     Eigen::Vector3f compute_centroid(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud_ptr);
     Eigen::Vector3f  compute_centroid(pcl::PointCloud<pcl::PointXYZ> &input_cloud);
+    Eigen::Vector3f compute_centroid(pcl::PointCloud<pcl::PointXYZRGB>::Ptr input_cloud_ptr);
+    Eigen::Vector3f  compute_centroid(pcl::PointCloud<pcl::PointXYZRGB> &input_cloud);
     
     void fit_points_to_plane(pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud_ptr,Eigen::Vector3f &plane_normal, double &plane_dist);
     //void fit_xformed_selected_pts_to_plane(Eigen::Vector3f &plane_normal, double &plane_dist);  
@@ -93,6 +95,7 @@ public:
 
 
     void transform_kinect_cloud(Eigen::Affine3f A);
+    void transform_kinect_clr_cloud(Eigen::Affine3f A);
     void transform_selected_points_cloud(Eigen::Affine3f A);
     void transform_cloud(Eigen::Affine3f A,pcl::PointCloud<pcl::PointXYZ>::Ptr input_cloud_ptr, 
         pcl::PointCloud<pcl::PointXYZ>::Ptr output_cloud_ptr); 
@@ -127,13 +130,21 @@ public:
     void get_kinect_points(pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloudPtr );
     void get_kinect_points(pcl::PointCloud<pcl::PointXYZRGB> & outputCloudPtr );
     void get_kinect_points(pcl::PointCloud<pcl::PointXYZRGB>::Ptr &outputCloud );
+    void get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZ> & outputCloud );
+    void get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloudPtr );
+    void get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZRGB> & outputCloudPtr );
+    void get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZRGB>::Ptr &outputCloud );
     void get_selected_points(pcl::PointCloud<pcl::PointXYZ>::Ptr &outputCloudPtr );
     void get_selected_points(pcl::PointCloud<pcl::PointXYZ> &outputCloud);
 
     void example_pcl_operation();
     //operate on transformed Kinect data and identify point indices within +/-z_eps of specified height
     void filter_cloud_z(PointCloud<pcl::PointXYZ>::Ptr inputCloud, double z_nom, double z_eps, vector<int> &indices);
-    void filter_cloud_z(PointCloud<pcl::PointXYZRGB>::Ptr inputCloud, double z_nom, double z_eps, vector<int> &indices);    
+    void filter_cloud_z(PointCloud<pcl::PointXYZ>::Ptr inputCloud, double z_max, double z_min, double z_eps, vector<int> &indices);
+    void filter_cloud_z(PointCloud<pcl::PointXYZRGB>::Ptr inputCloud, double z_nom, double z_eps, vector<int> &indices);
+    void filter_cloud_z(PointCloud<pcl::PointXYZRGB>::Ptr inputCloud, double z_max, double z_min, double z_eps, vector<int> &indices);
+    void filter_cloud_z(double z_max, double z_min, double z_eps, vector<int> &indices);
+
     // as above, specifically for transformed kinect cloud:
     void find_coplanar_pts_z_height(double plane_height,double z_eps,vector<int> &indices);
     // find pts within +/- z_eps of z_height, AND within "radius" of "centroid"
@@ -174,6 +185,7 @@ private:
 
     pcl::PointCloud<pcl::PointXYZ>::Ptr pclKinect_ptr_; //(new PointCloud<pcl::PointXYZ>);
     pcl::PointCloud<pcl::PointXYZ>::Ptr pclTransformed_ptr_;
+    pcl::PointCloud<pcl::PointXYZRGB>::Ptr pclTransformed_clr_ptr_;
     pcl::PointCloud<pcl::PointXYZ>::Ptr pclSelectedPoints_ptr_;
     pcl::PointCloud<pcl::PointXYZ>::Ptr pclTransformedSelectedPoints_ptr_;
     pcl::PointCloud<pcl::PointXYZ>::Ptr pclGenPurposeCloud_ptr_;
