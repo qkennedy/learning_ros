@@ -9,11 +9,11 @@ PclUtils::PclUtils(ros::NodeHandle* nodehandle) : nh_(*nodehandle),
                                                   pclKinect_ptr_(new PointCloud<pcl::PointXYZ>),
                                                   pclKinect_clr_ptr_(new PointCloud<pcl::PointXYZRGB>),
                                                   pclTransformed_ptr_(new PointCloud<pcl::PointXYZ>),
+                                                  pclTransformed_clr_ptr_(new PointCloud<pcl::PointXYZRGB>),
                                                   pclSelectedPoints_ptr_(new PointCloud<pcl::PointXYZ>),
                                                   pclSelectedPtsClr_ptr_(new PointCloud<pcl::PointXYZRGB>),
                                                   pclTransformedSelectedPoints_ptr_(new PointCloud<pcl::PointXYZ>),
-                                                  pclGenPurposeCloud_ptr_(new PointCloud<pcl::PointXYZ>),
-                                                  pclTransformed_clr_ptr_(new PointCloud<pcl::PointXYZRGB>){
+                                                  pclGenPurposeCloud_ptr_(new PointCloud<pcl::PointXYZ>) {
 
     
     initializeSubscribers();
@@ -489,10 +489,6 @@ void PclUtils::get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZRGB>::
     ROS_INFO("In get_kinect_transformed_points function...");
     int npts = pclTransformed_clr_ptr_->points.size(); //how many points to extract?
     ROS_INFO_STREAM("Transformed cloud has " << npts << " to copy");
-    //cout<<"need to copy "<<npts<<" points"<<endl;
-    //cout<<"enter 1: ";
-    //int ans;
-    //cin>>ans;
     outputCloudPtr->header = pclTransformed_clr_ptr_->header;
     outputCloudPtr->is_dense = pclTransformed_clr_ptr_->is_dense;
     ROS_INFO_STREAM("setting width");
