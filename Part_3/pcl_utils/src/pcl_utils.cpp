@@ -418,7 +418,7 @@ void PclUtils::get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZ> & ou
     outputCloud.width = npts;
     outputCloud.height = 1;
 
-    cout << "copying cloud w/ npts =" << npts << endl;
+    ROS_INFO_STREAM("copying cloud w/ npts =" << npts);
     outputCloud.points.resize(npts);
     for (int i = 0; i < npts; ++i) {
         outputCloud.points[i].getVector3fMap() = pclTransformed_ptr_->points[i].getVector3fMap();
@@ -440,14 +440,14 @@ void PclUtils::get_kinect_points(pcl::PointCloud<pcl::PointXYZRGB> & outputCloud
     
 }
 
-void PclUtils::get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZRGB> & outputCloud ) {
+void PclUtils::get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZRGB>& outputCloud ) {
     int npts = pclTransformed_clr_ptr_->points.size(); //how many points to extract?
     outputCloud.header = pclTransformed_clr_ptr_->header;
     outputCloud.is_dense = pclTransformed_clr_ptr_->is_dense;
     outputCloud.width = npts;
     outputCloud.height = 1;
 
-    cout << "get_kinect_points xyzrgb, copying cloud w/ npts =" << npts << endl;
+    ROS_INFO_STREAM("get_kinect_points xyzrgb, copying cloud w/ npts =" << npts);
     outputCloud.points.resize(npts);
     for (int i = 0; i < npts; ++i) {
         outputCloud.points[i] = pclTransformed_clr_ptr_->points[i];
@@ -483,15 +483,16 @@ void PclUtils::get_kinect_points(pcl::PointCloud<pcl::PointXYZRGB>::Ptr &outputC
 
 void PclUtils::get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZRGB>::Ptr &outputCloudPtr ) {
     int npts = pclTransformed_clr_ptr_->points.size(); //how many points to extract?
+    ROS_INFO_STREAM("Transformed cloud has " << npts << " to copy");
     //cout<<"need to copy "<<npts<<" points"<<endl;
     //cout<<"enter 1: ";
     //int ans;
     //cin>>ans;
     outputCloudPtr->header = pclTransformed_clr_ptr_->header;
     outputCloudPtr->is_dense = pclTransformed_clr_ptr_->is_dense;
-    cout<<"setting width: "<<endl;
+    ROS_INFO_STREAM("setting width");
     outputCloudPtr->width = npts;
-    cout<<"setting height"<<endl;
+    ROS_INFO("setting height");
     outputCloudPtr->height = 1;
 
     //cout << "ready to resize output cloud to npts = " << npts << endl;
@@ -904,7 +905,7 @@ void PclUtils::transform_cloud(Eigen::Affine3f A, pcl::PointCloud<pcl::PointXYZ>
     output_cloud_ptr->width = input_cloud_ptr->width;
     output_cloud_ptr->height = input_cloud_ptr->height;
     int npts = input_cloud_ptr->points.size();
-    cout << "transforming npts = " << npts << endl;
+    ROS_INFO_STREAM("transforming npts = " << npts);
     output_cloud_ptr->points.resize(npts);
 
     //somewhat odd notation: getVector3fMap() reading OR WRITING points from/to a pointcloud, with conversions to/from Eigen
