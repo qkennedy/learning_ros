@@ -5,11 +5,15 @@
 #include <pcl-1.7/pcl/PCLHeader.h>
 //uses initializer list for member vars
 
-PclUtils::PclUtils(ros::NodeHandle* nodehandle) : nh_(*nodehandle), pclKinect_ptr_(new PointCloud<pcl::PointXYZ>),
-        pclKinect_clr_ptr_(new PointCloud<pcl::PointXYZRGB>),
-pclTransformed_ptr_(new PointCloud<pcl::PointXYZ>), pclSelectedPoints_ptr_(new PointCloud<pcl::PointXYZ>),
-        pclSelectedPtsClr_ptr_(new PointCloud<pcl::PointXYZRGB>),
-pclTransformedSelectedPoints_ptr_(new PointCloud<pcl::PointXYZ>),pclGenPurposeCloud_ptr_(new PointCloud<pcl::PointXYZ>) {
+PclUtils::PclUtils(ros::NodeHandle* nodehandle) : nh_(*nodehandle),
+                                                  pclKinect_ptr_(new PointCloud<pcl::PointXYZ>),
+                                                  pclKinect_clr_ptr_(new PointCloud<pcl::PointXYZRGB>),
+                                                  pclTransformed_ptr_(new PointCloud<pcl::PointXYZ>),
+                                                  pclSelectedPoints_ptr_(new PointCloud<pcl::PointXYZ>),
+                                                  pclSelectedPtsClr_ptr_(new PointCloud<pcl::PointXYZRGB>),
+                                                  pclTransformedSelectedPoints_ptr_(new PointCloud<pcl::PointXYZ>),
+                                                  pclGenPurposeCloud_ptr_(new PointCloud<pcl::PointXYZ>),
+                                                  pclTransformed_clr_ptr_(new PointCloud<pcl::PointXYZRGB>){
 
     
     initializeSubscribers();
@@ -481,7 +485,7 @@ void PclUtils::get_kinect_points(pcl::PointCloud<pcl::PointXYZRGB>::Ptr &outputC
     }        
 }
 
-void PclUtils::get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZRGB>::Ptr &outputCloudPtr ) {
+void PclUtils::get_kinect_transformed_points(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& outputCloudPtr ) {
     ROS_INFO("In get_kinect_transformed_points function...");
     int npts = pclTransformed_clr_ptr_->points.size(); //how many points to extract?
     ROS_INFO_STREAM("Transformed cloud has " << npts << " to copy");
