@@ -39,12 +39,12 @@ int main(int argc, char** argv) {
     geometry_msgs::PoseStamped perceived_object_pose;
     
     //populate a viable object pose; actually, this is a Merry right-hand pose
-   /* example from Merry: (right_hand w/rt torso?)
-- Translation: [0.680, -0.205, 0.047]
-- Rotation: in Quaternion [0.166, 0.684, 0.702, 0.109]
-            in RPY (radian) [1.563, -0.084, 2.750]
-            in RPY (degree) [89.537, -4.810, 157.546]
-        */
+    /*  example from Merry: (right_hand w/rt torso?)
+        - Translation: [0.680, -0.205, 0.047]
+        - Rotation: in Quaternion [0.166, 0.684, 0.702, 0.109]
+        in RPY (radian) [1.563, -0.084, 2.750]
+        in RPY (degree) [89.537, -4.810, 157.546]
+    */
     perceived_object_pose.header.frame_id = "torso";
     perceived_object_pose.pose.position.x = 0.680;
     perceived_object_pose.pose.position.y = -0.205;

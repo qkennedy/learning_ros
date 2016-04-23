@@ -90,7 +90,7 @@ void ObjectGrabber::vertical_cylinder_power_grasp(geometry_msgs::PoseStamped obj
     
     Eigen::Affine3d object_affine;
     object_affine = 
-     g_arm_motion_commander_ptr->transformPoseToEigenAffine3d(object_pose.pose);
+        g_arm_motion_commander_ptr->transformPoseToEigenAffine3d(object_pose.pose);
     Eigen::Vector3d object_origin;
     object_origin = object_affine.translation();
     grasp_origin_ = object_origin; //grasp origin is same as object origin...
@@ -142,19 +142,20 @@ void ObjectGrabber::vertical_cylinder_power_grasp(geometry_msgs::PoseStamped obj
 // also, this code does NO error checking (e.g., unreachable); needs to be fixed!
 void ObjectGrabber::executeCB(const actionlib::SimpleActionServer<object_grabber::object_grabberAction>::GoalConstPtr& goal) {
  
-   int object_code = goal->object_code;
-   geometry_msgs::PoseStamped object_pose = goal->object_frame;
-   switch(object_code) {
-   case object_grabber::object_grabberGoal::COKE_CAN: 
-     vertical_cylinder_power_grasp(object_pose);
-     grab_result_.return_code = object_grabber::object_grabberResult::OBJECT_ACQUIRED; 
-     object_grabber_as_.setSucceeded(grab_result_);
-     break;
-   default:
-             ROS_WARN("this object ID is not implemented");
-             grab_result_.return_code = object_grabber::object_grabberResult::FAILED_OBJECT_UNKNOWN; 
-             object_grabber_as_.setAborted(grab_result_);
-            }
+    int object_code = goal->object_code;
+    geometry_msgs::PoseStamped object_pose = goal->object_frame;
+
+    switch(object_code) {
+        case object_grabber::object_grabberGoal::COKE_CAN: 
+            vertical_cylinder_power_grasp(object_pose);
+            grab_result_.return_code = object_grabber::object_grabberResult::OBJECT_ACQUIRED; 
+            object_grabber_as_.setSucceeded(grab_result_);
+            break;
+        default:
+            ROS_WARN("this object ID is not implemented");
+            grab_result_.return_code = object_grabber::object_grabberResult::FAILED_OBJECT_UNKNOWN; 
+            object_grabber_as_.setAborted(grab_result_);
+    }
      
    
     //grab_result_.return_code = object_grabber::object_grabberResult::OBJECT_ACQUIRED; 
