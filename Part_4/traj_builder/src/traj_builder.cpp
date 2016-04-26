@@ -203,7 +203,7 @@ void TrajBuilder::build_spin_traj(geometry_msgs::PoseStamped start_pose,
 //determines if a triangular or trapezoidal velocity profile is needed
 void TrajBuilder::build_travel_traj(geometry_msgs::PoseStamped start_pose,
         geometry_msgs::PoseStamped end_pose,
-        std::vector<nav_msgs::Odometry> &vec_of_states) {
+        std::vector<nav_msgs::Odometry> &vec_of_states, int mult) {
     //decide if triangular or trapezoidal profile:
     double x_start = start_pose.pose.position.x;
     double y_start = start_pose.pose.position.y;
@@ -215,9 +215,9 @@ void TrajBuilder::build_travel_traj(geometry_msgs::PoseStamped start_pose,
     double ramp_up_dist = 0.5 * speed_max_ * speed_max_ / alpha_max_;
     ROS_INFO("trip len = %f", trip_len);
     if (trip_len < 2.0 * ramp_up_dist) { //length is too short for trapezoid
-        build_triangular_travel_traj(start_pose, end_pose, vec_of_states);
+        build_triangular_travel_traj(start_pose, end_pose, vec_of_states, mult);
     } else {
-        build_trapezoidal_travel_traj(start_pose, end_pose, vec_of_states);
+        build_trapezoidal_travel_traj(start_pose, end_pose, vec_of_states, mult);
     }
 }
 
@@ -226,7 +226,7 @@ void TrajBuilder::build_travel_traj(geometry_msgs::PoseStamped start_pose,
 // desired motion, subject to speed and acceleration constraints
 void TrajBuilder::build_trapezoidal_travel_traj(geometry_msgs::PoseStamped start_pose,
         geometry_msgs::PoseStamped end_pose,
-        std::vector<nav_msgs::Odometry> &vec_of_states) {
+        std::vector<nav_msgs::Odometry> &vec_of_states, int mult) {
     double x_start = start_pose.pose.position.x;
     double y_start = start_pose.pose.position.y;
     double x_end = end_pose.pose.position.x;
@@ -258,11 +258,11 @@ void TrajBuilder::build_trapezoidal_travel_traj(geometry_msgs::PoseStamped start
     //ramp up;
     for (int i = 0; i < npts_ramp; i++) {
         t += dt_;
-        speed_des = accel_max_*t;
+        speed_des = accel_max_*t*mult;
         des_state.twist.twist.linear.x = speed_des; //update speed
         //update positions
-        x_des = x_start + 0.5 * accel_max_ * t * t * cos(psi_des);
-        y_des = y_start + 0.5 * accel_max_ * t * t * sin(psi_des);
+        x_des = x_start + (0.5 * accel_max_ * t * t * cos(psi_des)* mult);
+        y_des = y_start + (0.5 * accel_max_ * t * t * sin(psi_des) * mult);
         des_state.pose.pose.position.x = x_des;
         des_state.pose.pose.position.y = y_des;
         vec_of_states.push_back(des_state);
@@ -285,8 +285,8 @@ void TrajBuilder::build_trapezoidal_travel_traj(geometry_msgs::PoseStamped start
     for (int i = 0; i < npts_ramp; i++) {
         speed_des -= accel_max_*dt_; //Euler one-step integration
         des_state.twist.twist.linear.x = speed_des;
-        x_des += speed_des * dt_ * cos(psi_des); //Euler one-step integration
-        y_des += speed_des * dt_ * sin(psi_des); //Euler one-step integration        
+        x_des += speed_des * dt_ * cos(psi_des) * mult; //Euler one-step integration
+        y_des += speed_des * dt_ * sin(psi_des) * mult; //Euler one-step integration        
         des_state.pose.pose.position.x = x_des;
         des_state.pose.pose.position.y = y_des;
         vec_of_states.push_back(des_state);
@@ -303,7 +303,7 @@ void TrajBuilder::build_trapezoidal_travel_traj(geometry_msgs::PoseStamped start
 // respective limits of velocity and accel
 void TrajBuilder::build_triangular_travel_traj(geometry_msgs::PoseStamped start_pose,
         geometry_msgs::PoseStamped end_pose,
-        std::vector<nav_msgs::Odometry> &vec_of_states) {
+        std::vector<nav_msgs::Odometry> &vec_of_states, int mult) {
     double x_start = start_pose.pose.position.x;
     double y_start = start_pose.pose.position.y;
     double x_end = end_pose.pose.position.x;
@@ -318,7 +318,7 @@ void TrajBuilder::build_triangular_travel_traj(geometry_msgs::PoseStamped start_
     double trip_len = sqrt(dx * dx + dy * dy);
     double t_ramp = sqrt(trip_len / accel_max_);
     int npts_ramp = round(t_ramp / dt_);
-    double v_peak = accel_max_*t_ramp; // could consider special cases for reverse motion
+    double v_peak = accel_max_*t_ramp*mult; // could consider special cases for reverse motion
     double d_vel = alpha_max_*dt_; // incremental velocity changes for ramp-up
 
     double x_des = x_start; //start from here
@@ -331,11 +331,11 @@ void TrajBuilder::build_triangular_travel_traj(geometry_msgs::PoseStamped start_
     //ramp up;
     for (int i = 0; i < npts_ramp; i++) {
         t += dt_;
-        speed_des = accel_max_*t;
+        speed_des = accel_max_*t*mult;
         des_state.twist.twist.linear.x = speed_des; //update speed
         //update positions
-        x_des = x_start + 0.5 * accel_max_ * t * t * cos(psi_des);
-        y_des = y_start + 0.5 * accel_max_ * t * t * sin(psi_des);
+        x_des = x_start + 0.5 * accel_max_ * t * t * cos(psi_des)*mult;
+        y_des = y_start + 0.5 * accel_max_ * t * t * sin(psi_des)*mult;
         des_state.pose.pose.position.x = x_des;
         des_state.pose.pose.position.y = y_des;
         vec_of_states.push_back(des_state);
@@ -344,8 +344,8 @@ void TrajBuilder::build_triangular_travel_traj(geometry_msgs::PoseStamped start_
     for (int i = 0; i < npts_ramp; i++) {
         speed_des -= accel_max_*dt_; //Euler one-step integration
         des_state.twist.twist.linear.x = speed_des;
-        x_des += speed_des * dt_ * cos(psi_des); //Euler one-step integration
-        y_des += speed_des * dt_ * sin(psi_des); //Euler one-step integration        
+        x_des += speed_des * dt_ * cos(psi_des)*mult; //Euler one-step integration
+        y_des += speed_des * dt_ * sin(psi_des)*mult; //Euler one-step integration        
         des_state.pose.pose.position.x = x_des;
         des_state.pose.pose.position.y = y_des;
         vec_of_states.push_back(des_state);
@@ -360,7 +360,7 @@ void TrajBuilder::build_triangular_travel_traj(geometry_msgs::PoseStamped start_
 
 void TrajBuilder::build_triangular_spin_traj(geometry_msgs::PoseStamped start_pose,
         geometry_msgs::PoseStamped end_pose,
-        std::vector<nav_msgs::Odometry> &vec_of_states) {
+        std::vector<nav_msgs::Odometry> &vec_of_states,int mult) {
     nav_msgs::Odometry des_state;
     des_state.header = start_pose.header; //really, want to copy the frame_id
     des_state.pose.pose = start_pose.pose; //start from here
@@ -409,6 +409,7 @@ void TrajBuilder::build_braking_traj(geometry_msgs::PoseStamped start_pose,
 
 }
 
+
 //main fnc of this library: constructs a spin-in-place reorientation to
 // point to goal coords, then a straight-line trajectory from start to goal
 //NOTE:  this function will clear out the vec_of_states vector of trajectory states.
@@ -428,6 +429,13 @@ void TrajBuilder::build_point_and_go_traj(geometry_msgs::PoseStamped start_pose,
     double dx = x_end - x_start;
     double dy = y_end - y_start;
     double des_psi = atan2(dy, dx); //heading to point towards goal pose
+    int mult=1;
+    if(abs(des_psi-convertPlanarQuat2Psi(start_pose.pose.quaternion))>2.35||
+    	abs(des_psi-convertPlanarQuat2Psi(start_pose.pose.quaternion))<3.92){
+    	ROS_INFO("I should be going backwards?")
+    	des_psi-=3.14;
+    	mult=-1;
+    }
     ROS_INFO("desired heading to subgoal = %f", des_psi);
     //bridge pose: state of robot with start_x, start_y, but pointing at next subgoal
     //  achieve this pose with a spin move before proceeding to subgoal with translational
@@ -438,5 +446,5 @@ void TrajBuilder::build_point_and_go_traj(geometry_msgs::PoseStamped start_pose,
     build_spin_traj(start_pose, bridge_pose, vec_of_states); //build trajectory to reorient
     //start next segment where previous segment left off
     ROS_INFO("building translational trajectory");
-    build_travel_traj(bridge_pose, end_pose, vec_of_states);
+    build_travel_traj(bridge_pose, end_pose, vec_of_states,);
 }
